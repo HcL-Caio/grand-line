@@ -1,0 +1,17 @@
+{
+  "name": "grand-line-atlas",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Frontend e banco MySQL acadêmico do guia One Piece Card Game",
+  "scripts": {
+    "start": "node server.mjs",
+    "update-catalog": "node tools/import-catalog.mjs --refresh && node tools/extend-catalog.mjs --refresh",
+    "download-images": "node tools/download-card-images.mjs",
+    "extend-catalog": "node tools/extend-catalog.mjs",
+    "build-database": "node database/tools/build-schema.mjs && node database/tools/build-seed.mjs",
+    "verify-database": "node database/tools/verify.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

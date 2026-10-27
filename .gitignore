@@ -1,0 +1,19 @@
+# Configuração local e credenciais
+.env
+.env.*
+!.env.example
+.openai/
+*.pem
+*.key
+
+# Dependências, caches e arquivos gerados na máquina
+node_modules/
+work/
+*.log
+.DS_Store
+Thumbs.db
+
+# Entregas compactadas não são código-fonte
+*.zip
+*.7z
+*.rar
