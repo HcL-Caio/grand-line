@@ -46,4 +46,33 @@
   function resetTilt(target){target.style.removeProperty('--tilt-x');target.style.removeProperty('--tilt-y');target.style.removeProperty('--shine-x');target.style.removeProperty('--shine-y');}
   document.addEventListener('pointerout',e=>{const target=e.target.closest('.tile-media,.card-picture,.zoom-card,.spotlight-art');if(target&&!target.contains(e.relatedTarget)){resetTilt(target);if(tiltTarget===target)tiltTarget=null;}});
   document.addEventListener('click',e=>{const favorite=e.target.closest('[data-favorite]');if(favorite){const current=[...document.querySelectorAll('[data-favorite]')].find(b=>b.dataset.favorite===favorite.dataset.favorite);const card=current?.closest('.catalog-card,.tcg-card');if(card){card.classList.remove('treasure-saved');requestAnimationFrame(()=>card.classList.add('treasure-saved'));}}});
+
+  // A manga impact rewards deliberate actions, never blocks a click.
+  let lastImpact=0;
+  document.addEventListener('click',event=>{
+    const action=event.target.closest('.featured-card,[data-favorite],.favorite-btn,.tile-favorite');
+    if(!action||paused||document.hidden||Date.now()-lastImpact<800)return;
+    lastImpact=Date.now();
+    const rect=action.getBoundingClientRect();
+    const impact=document.createElement('span');impact.className='don-impact';
+    impact.setAttribute('aria-hidden','true');impact.textContent='DON!!';
+    impact.style.left=Math.max(65,Math.min(innerWidth-65,rect.left+rect.width/2))+'px';
+    impact.style.top=Math.max(55,Math.min(innerHeight-55,rect.top+rect.height/2))+'px';
+    document.body.append(impact);setTimeout(()=>impact.remove(),850);
+  });
+  if(heroArt){
+    const haki=document.createElement('div');haki.className='haki-aura';haki.setAttribute('aria-hidden','true');
+    haki.innerHTML='<i></i><i></i><i></i><span>ドン!!</span>';heroArt.prepend(haki);
+    heroArt.addEventListener('pointerenter',()=>{if(!paused)heroArt.classList.add('haki-awake');});
+    heroArt.addEventListener('pointerleave',()=>heroArt.classList.remove('haki-awake'));
+    heroArt.addEventListener('focusin',()=>{if(!paused)heroArt.classList.add('haki-awake');});
+    heroArt.addEventListener('focusout',e=>{if(!heroArt.contains(e.relatedTarget))heroArt.classList.remove('haki-awake');});
+  }
+  const library=document.querySelector('#biblioteca');
+  if(library){
+    const route=document.createElement('section');route.className='new-world-route container-xl';
+    route.setAttribute('aria-labelledby','voyage-route-title');
+    route.innerHTML=`<div class="route-heading"><span class="eyebrow gold">TRACE SUA PRÓPRIA ROTA</span><h2 id="voyage-route-title">O próximo Rei dos Piratas<br>começa por aqui.</h2><p>Conheça as cartas. Encontre seu líder. Reúna sua tripulação.</p></div><div class="route-map"><svg viewBox="0 0 1000 180" preserveAspectRatio="none" aria-hidden="true"><path class="route-base" d="M80 95 Q280 -20 500 95 T920 95"/><path class="route-current" d="M80 95 Q280 -20 500 95 T920 95"/></svg><a href="aprender.html" class="route-island"><span class="island-number">01</span><span class="island-mark" aria-hidden="true">⚓</span><b>Primeira viagem</b><small>Aprenda a jogar</small><span class="island-arrow" aria-hidden="true">↗</span></a><a href="home.html" class="route-island"><span class="island-number">02</span><span class="island-mark" aria-hidden="true">✦</span><b>Caça ao tesouro</b><small>Explore o catálogo</small><span class="island-arrow" aria-hidden="true">↗</span></a><a href="decks.html" class="route-island"><span class="island-number">03</span><span class="island-mark straw-hat" aria-hidden="true"></span><b>Sua tripulação</b><small>Monte seu deck</small><span class="island-arrow" aria-hidden="true">↗</span></a></div>`;
+    library.before(route);
+  }
 })();
