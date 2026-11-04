@@ -73,3 +73,34 @@ body{background-image:radial-gradient(ellipse at 90% 10%,#1b525415,transparent 5
 @media(hover:none),(pointer:coarse){.tile-media:hover,.card-picture:hover{transform:none}.foil-sheen{opacity:.12!important}.motion-label{display:none}}
 .motion-paused *,.motion-paused *::before,.motion-paused *::after{animation:none!important}.motion-paused .voyage-reveal{opacity:1;translate:0 0;transition:none}.motion-paused .tile-media,.motion-paused .card-picture,.motion-paused .zoom-card{transform:none!important}.motion-paused .hero-copy h1 em{background:none;color:var(--gold)}.motion-paused .sea-sparks{display:none}.motion-paused .foil-sheen{transition:none}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}.voyage-reveal{opacity:1;translate:0 0}.tile-media,.card-picture,.zoom-card{transform:none!important}.sea-sparks{display:none}.hero-copy h1 em{background:none;color:var(--gold)}}
+
+/* New World: nautical instruments, ink accents and a living horizon. */
+.hero{isolation:isolate}
+.hero-content,.hero-bottom{z-index:2}
+.hero-shade{z-index:1}
+.hero-art{isolation:isolate}
+.log-pose{position:absolute;width:380px;height:380px;top:103px;left:50%;translate:-50% 0;border:1px solid #e9bc6545;border-radius:50%;z-index:-1;background:repeating-conic-gradient(from -1deg,#e9bc6540 0deg 1deg,transparent 1deg 15deg);box-shadow:0 0 0 15px #e9bc6505,0 0 0 16px #e9bc651c,inset 0 0 70px #48b4be15;pointer-events:none}
+.log-pose::before{content:'';position:absolute;inset:18px;border:1px dashed #e9bc6538;border-radius:50%;background:radial-gradient(circle,#101719 55%,#101719a0 70%)}
+.log-pose>span:not(.pose-caption){position:absolute;font-size:10px;font-weight:700;color:#ebc985;letter-spacing:2px}
+.pose-north{top:-25px;left:49%}.pose-south{bottom:-25px;left:49%}.pose-west{left:-26px;top:49%}.pose-east{right:-25px;top:49%}
+.pose-needle{position:absolute;inset:32px 48%;background:linear-gradient(#d95647 0 48%,#ead7a3 48%);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);rotate:25deg;animation:poseSeek 14s ease-in-out infinite;opacity:.8}
+.pose-caption{position:absolute;top:-55px;left:0;right:0;text-align:center;color:#b5c6c3;font-size:8px;letter-spacing:3px}
+.grand-line-sea{position:absolute;inset:auto -10% -100px;height:190px;z-index:1;pointer-events:none;overflow:hidden;opacity:.7}
+.grand-line-sea i{position:absolute;inset:25px -10% auto;height:280px;border-radius:48% 52% 0 0;border-top:1px solid #70c7d346;background:linear-gradient(#2c929c12,transparent 55%);animation:newWorldTide 12s ease-in-out infinite alternate}
+.grand-line-sea i:nth-child(2){top:45px;animation-delay:-5s;animation-duration:17s;border-color:#e9bc6530;rotate:-3deg}
+.grand-line-sea i:nth-child(3){top:65px;animation-delay:-8s;animation-duration:21s;rotate:3deg}
+.hero-copy h1{position:relative}
+.hero-copy h1::after{content:'';display:block;width:85px;height:5px;margin-top:25px;background:#cf5343;clip-path:polygon(0 20%,100% 0,92% 70%,3% 100%)}
+.brand-symbol{position:relative;display:inline-grid;place-items:center;width:48px;aspect-ratio:1;border:1px solid #e9bc6540;border-radius:50%;font-size:37px}
+.brand-symbol::before,.brand-symbol::after{content:'';position:absolute;inset:5px;border:1px dashed #e9bc6535;border-radius:50%;pointer-events:none}
+.brand-symbol::after{inset:-4px 22px;border:0;border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);border-radius:0}
+header{transition:box-shadow .3s,border-color .3s}header.past-horizon{border-color:#e9bc6540;box-shadow:0 10px 35px #0004}
+.spotlight-art{transition:transform .35s ease;transform:perspective(900px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg))}
+.spotlight-art-shine{background:radial-gradient(circle at var(--shine-x,50%) var(--shine-y,30%),#fff7,transparent 45%),linear-gradient(120deg,transparent,#a5dbe333,transparent);mix-blend-mode:screen}
+.treasure-topline{border-bottom:1px solid #d8b67630;padding-bottom:12px;letter-spacing:1.8px}
+.treasure-topline::before{content:'';position:absolute;left:-18px;top:-18px;width:40px;height:3px;background:#cf5343}
+@keyframes poseSeek{0%,100%{rotate:25deg}35%{rotate:42deg}65%{rotate:18deg}}
+@keyframes newWorldTide{from{transform:translateX(-3%) rotate(-2deg)}to{transform:translateX(3%) rotate(2deg)}}
+@media(max-width:700px){.log-pose{width:330px;height:330px;top:125px}.pose-caption{top:-40px}.grand-line-sea{opacity:.45}.brand-symbol{width:36px;font-size:28px}.brand-symbol::after{inset:-4px 16px}}
+.motion-paused .spotlight-art{transform:none!important}
+@media(prefers-reduced-motion:reduce){.spotlight-art{transform:none!important}}
