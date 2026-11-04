@@ -21,13 +21,29 @@
   }
   const ticker=document.querySelector('.ticker');if(ticker&&!ticker.querySelector('.ticker-track')){const content=ticker.innerHTML;ticker.innerHTML='<div class="ticker-track">'+content+' ✦ '+content+' ✦ </div>';}
   const welcome=document.querySelector('.catalog-welcome>div');if(welcome&&window.ATLAS_IMAGE_LIBRARY){const status=document.createElement('span');status.className='gallery-status';const count=window.ATLAS_IMAGE_LIBRARY.localCount.toLocaleString('pt-BR');status.innerHTML='<i></i>'+count+' ilustrações incluídas no projeto';welcome.append(status);}
+  // A Log Pose marks the course without adding another navigation control.
+  const hero=document.querySelector('.hero');
+  const heroArt=document.querySelector('.hero-art');
+  if(hero && heroArt){
+    const pose=document.createElement('div');
+    pose.className='log-pose';pose.setAttribute('aria-hidden','true');
+    pose.innerHTML='<span class="pose-north">N</span><span class="pose-west">W</span><span class="pose-east">E</span><span class="pose-south">S</span><i class="pose-needle"></i><span class="pose-caption">LOG POSE · NEW WORLD</span>';
+    heroArt.prepend(pose);
+    const sea=document.createElement('div');sea.className='grand-line-sea';sea.setAttribute('aria-hidden','true');
+    sea.innerHTML='<i></i><i></i><i></i>';hero.append(sea);
+  }
+  const header=document.querySelector('header');
+  const horizon=('IntersectionObserver' in window ? new IntersectionObserver(entries=>header?.classList.toggle('past-horizon',!entries[0].isIntersecting)) : null);
+  if(hero)horizon?.observe(hero);
   decorate();
   const observer=new MutationObserver(records=>{if(records.some(r=>r.type==='childList'&&r.addedNodes.length))decorate();});
   [document.querySelector('#catalog-grid'),document.querySelector('#card-grid'),document.querySelector('#card-page'),document.querySelector('#lesson-article'),document.querySelector('#pool-grid')].filter(Boolean).forEach(el=>observer.observe(el,{childList:true,subtree:true}));
   const fine=window.matchMedia('(hover: hover) and (pointer: fine)');
   let tiltTarget=null;
-  document.addEventListener('pointermove',e=>{if(paused||!fine.matches||e.pointerType==='touch')return;const target=e.target.closest('.tile-media,.card-picture,.zoom-card');if(!target)return;const rect=target.getBoundingClientRect();if(!rect.width||!rect.height)return;const x=(e.clientX-rect.left)/rect.width,y=(e.clientY-rect.top)/rect.height;target.style.setProperty('--tilt-x',((.5-y)*7).toFixed(2)+'deg');target.style.setProperty('--tilt-y',((x-.5)*7).toFixed(2)+'deg');target.style.setProperty('--shine-x',(x*100).toFixed(1)+'%');target.style.setProperty('--shine-y',(y*100).toFixed(1)+'%');if(tiltTarget&&tiltTarget!==target)resetTilt(tiltTarget);tiltTarget=target;},{passive:true});
+  document.addEventListener('pointermove',e=>{if(paused||!fine.matches||e.pointerType==='touch')return;const target=e.target.closest('.tile-media,.card-picture,.zoom-card,.spotlight-art');if(!target)return;const rect=target.getBoundingClientRect();if(!rect.width||!rect.height)return;const x=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),y=Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height));target.style.setProperty('--tilt-x',((.5-y)*7).toFixed(2)+'deg');target.style.setProperty('--tilt-y',((x-.5)*7).toFixed(2)+'deg');target.style.setProperty('--shine-x',(x*100).toFixed(1)+'%');target.style.setProperty('--shine-y',(y*100).toFixed(1)+'%');if(tiltTarget&&tiltTarget!==target)resetTilt(tiltTarget);tiltTarget=target;},{passive:true});
+  const clearTilt=()=>{if(tiltTarget)resetTilt(tiltTarget);tiltTarget=null;};
+  toggle.addEventListener('click',clearTilt);media.addEventListener?.('change',clearTilt);
   function resetTilt(target){target.style.removeProperty('--tilt-x');target.style.removeProperty('--tilt-y');target.style.removeProperty('--shine-x');target.style.removeProperty('--shine-y');}
-  document.addEventListener('pointerout',e=>{const target=e.target.closest('.tile-media,.card-picture,.zoom-card');if(target&&!target.contains(e.relatedTarget)){resetTilt(target);if(tiltTarget===target)tiltTarget=null;}});
+  document.addEventListener('pointerout',e=>{const target=e.target.closest('.tile-media,.card-picture,.zoom-card,.spotlight-art');if(target&&!target.contains(e.relatedTarget)){resetTilt(target);if(tiltTarget===target)tiltTarget=null;}});
   document.addEventListener('click',e=>{const favorite=e.target.closest('[data-favorite]');if(favorite){const current=[...document.querySelectorAll('[data-favorite]')].find(b=>b.dataset.favorite===favorite.dataset.favorite);const card=current?.closest('.catalog-card,.tcg-card');if(card){card.classList.remove('treasure-saved');requestAnimationFrame(()=>card.classList.add('treasure-saved'));}}});
 })();
