@@ -124,7 +124,7 @@ Login, cadastro e recuperação são **interfaces de frontend**. Nenhum usuário
 
 As relações entre ilustração, capítulo, episódio e contexto narrativo continuam como **pesquisa pendente**, visível nas fichas. Não foram inventadas referências. Algumas artes são originais. Um produto listado não garante que cada pacote contenha a carta.
 
-O banco MySQL e a carga inicial estão prontos em `database/`. Backend PHP, autenticação real, CRUDs administrativos e relatório PDF continuam como a próxima etapa acadêmica.
+O banco MySQL e a carga inicial estão prontos em `database/`. O backend PHP em [`backend/`](backend/README.md) entrega autenticação por sessão, o CRUD de decks com filtros e a listagem em PDF (`php -S localhost:8000 -t dist backend/router.php`, depois `/app`). Recuperação de senha por e-mail, coleção/favoritos no servidor e CRUDs administrativos continuam como próxima etapa.
 
 ## Organização
 
