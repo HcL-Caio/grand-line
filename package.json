@@ -9,7 +9,9 @@
     "download-images": "node tools/download-card-images.mjs",
     "extend-catalog": "node tools/extend-catalog.mjs",
     "build-database": "node database/tools/build-schema.mjs && node database/tools/build-seed.mjs",
-    "verify-database": "node database/tools/verify.mjs"
+    "verify-database": "node database/tools/verify.mjs",
+    "start:php": "php -S localhost:8000 -t dist backend/router.php",
+    "test:backend": "php backend/tests/run.php && php backend/tests/http.php"
   },
   "engines": {
     "node": ">=18"
