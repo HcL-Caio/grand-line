@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 use Atlas\App;
 use Atlas\Auth;
+use Atlas\Cards;
 use Atlas\Controller;
+use Atlas\Decks;
 
 require_once __DIR__ . '/src/bootstrap.php';
 
@@ -71,6 +73,48 @@ try {
         exit;
     }
 
+    // API JSON (somente leitura). A lógica de consultas é reutilizada das classes
+    // Cards/Decks, e o usuário de decks SEMPRE vem da sessão, nunca da URL.
+    if ($method === 'GET' && ($route === '/api/cards' || $route === '/api/decks')) {
+        header('Content-Type: application/json; charset=utf-8');
+        $pageInput = $_GET['page'] ?? 1;
+        $page = filter_var($pageInput, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1, 'max_range' => 100000],
+        ]) ?: 1;
+
+        if ($route === '/api/decks') {
+            $user = Auth::user($pdo);
+            if ($user === null) {
+                http_response_code(401);
+                echo json_encode(['error' => 'Autenticação necessária.'], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                exit;
+            }
+            $filters = [];
+            foreach (['q', 'format', 'status', 'visibility', 'color', 'sort'] as $key) {
+                $value = $_GET[$key] ?? '';
+                $filters[$key] = is_string($value) ? trim($value) : '';
+            }
+            $result = Decks::list($pdo, $user['user_id'], $filters, $page, 12);
+        } else {
+            $filters = [];
+            foreach (['q', 'type', 'color', 'max_cost'] as $key) {
+                $value = $_GET[$key] ?? '';
+                $filters[$key] = is_string($value) ? trim($value) : '';
+            }
+            $result = Cards::search($pdo, $filters, $page, 12);
+        }
+
+        echo json_encode([
+            'data' => $result['rows'],
+            'pagination' => [
+                'total' => $result['total'],
+                'page' => $result['page'],
+                'pages' => $result['pages'],
+            ],
+        ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        exit;
+    }
+
     $app = new Controller($pdo);
     $id = '([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})';
 
@@ -127,6 +171,13 @@ try {
     error_log('[atlas] ' . get_class($error) . ': ' . $error->getMessage() . ' em ' . $error->getFile() . ':' . $error->getLine());
     $unavailable = $error instanceof PDOException || ($error instanceof RuntimeException && str_contains($error->getMessage(), 'DB_'));
     http_response_code($unavailable ? 503 : 500);
+    if (str_starts_with($route ?? '', '/api/') || ($route ?? '') === '/session') {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'error' => $unavailable ? 'Banco de dados indisponível.' : 'Erro inesperado.',
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     render('error', [
         'title' => 'Algo deu errado',
         'user' => null,
