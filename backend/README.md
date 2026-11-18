@@ -14,6 +14,25 @@ Primeira etapa do backend prevista no README do projeto: PHP + PDO + MySQL 8.4, 
 | `/app/decks/{id}/editar` | **Atualizar**: dados, Líder, quantidades e busca de cartas (nome/ID, tipo, cor, custo, compatível com o Líder) |
 | `/app/decks/{id}/excluir` | **Excluir** (lógico, `deleted_at`) |
 | `/app/decks/{id}.pdf` | Lista de cartas de um deck |
+| `GET /app/session` | Retorna `authenticated` e `display_name` em JSON para identificar a sessão no frontend estático |
+| `GET /app/api/cards` | API JSON pública de cartas, com filtros e paginação |
+| `GET /app/api/decks` | API JSON dos decks do usuário logado; sem sessão retorna HTTP 401 |
+
+### APIs demonstráveis na apresentação
+
+Estas são **APIs de leitura**; o cadastro, login e as alterações de decks continuam por formulários HTTP tradicionais com POST e CSRF. Não são endpoints de escrita REST e não devem ser apresentados como tal.
+
+- `http://localhost:8000/app/session` mostra `authenticated: true` apenas com sessão ativa.
+- `http://localhost:8000/app/api/cards?q=Luffy&page=1` devolve JSON com `data` (cartas do MySQL) e `pagination` (`total`, `page`, `pages`).
+- `http://localhost:8000/app/api/decks` devolve somente os decks da conta autenticada; numa janela anônima retorna `{"error":"Autenticação necessária."}` com HTTP 401.
+
+As duas APIs reutilizam `Cards::search` e `Decks::list`, que fazem consultas SQL por PDO. Não recebem credenciais no URL; a propriedade dos decks é definida pelo ID do usuário na sessão PHP. Os filtros usam SQL preparado e paginação de 12 registros por chamada.
+
+### Fluxo arquitetural
+
+`Navegador (HTML/JS) -> Requisição HTTP -> backend/router.php -> Controller/Auth/Cards/Decks -> App::pdo (PDO) -> MySQL -> Resposta HTML, JSON ou PDF`.
+
+É uma aplicação PHP monolítica com separação em camadas e roteamento de ações, **não** um conjunto de microsserviços. As páginas estáticas do catálogo usam um snapshot local JS; a área de decks e os endpoints JSON consultam o banco. O servidor PHP embutido é destinado ao desenvolvimento local.
 
 Tabelas usadas: `users`, `decks`, `deck_items`, `audit_events` (escrita) e `cards`, `card_texts`, `card_colors`, `printings`, `printing_assets`, `play_formats` (leitura), além das views `v_deck_summary`, `v_deck_issues`, `v_deck_cost_curve`, `v_catalog_cards`. Nenhuma alteração no schema.
 
