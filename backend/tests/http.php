@@ -23,7 +23,8 @@ function startServer(int $port, string $root, array $env, array &$servers): void
 {
     $cmd = [PHP_BINARY, '-d', 'display_errors=0', '-d', 'log_errors=1',
         '-S', "127.0.0.1:{$port}", '-t', $root . '/dist', $root . '/backend/tests/test_router.php'];
-    $proc = proc_open($cmd, [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', sys_get_temp_dir() . "/atlas-server-{$port}.log", 'w']], $pipes, $root, $env + getenv());
+    $nullDevice = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+    $proc = proc_open($cmd, [0 => ['file', $nullDevice, 'r'], 1 => ['file', $nullDevice, 'w'], 2 => ['file', sys_get_temp_dir() . "/atlas-server-{$port}.log", 'w']], $pipes, $root, $env + getenv());
     $servers[] = $proc;
     for ($i = 0; $i < 50; $i++) {
         $socket = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.2);
