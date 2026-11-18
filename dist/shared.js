@@ -21,14 +21,30 @@
   }
   const page = document.body.dataset.page;
   if ($('#app-shell')) {
-    const items = [['home','home.html','▦','Explorar cartas'],['decks','decks.html','⚑','Montar decks'],['buy','comprar.html','◉','Onde conseguir'],['favorites','favoritos.html','♡','Meus favoritos'],['learn','aprender.html','◈','Aprenda a jogar']];
-    $('#app-shell').innerHTML = `<a class="skip" href="#main">Pular para o conteúdo</a><aside class="app-sidebar" id="sidebar"><a class="brand" href="index.html"><span class="brand-symbol">✦</span><span>GRAND LINE<span class="brand-sub">A T L A S</span></span></a><span class="sidebar-kicker">SEU DIÁRIO DE BORDO</span><nav class="side-nav" aria-label="Menu principal">${items.map(([id,url,icon,label])=>`<a href="${url}" ${page===id?'class="selected" aria-current="page"':''}><span>${icon}</span>${label}${id==='favorites'?'<small id="nav-favorite-count"></small>':''}</a>`).join('')}</nav><div class="sidebar-course"><span>CONHECIMENTO É TESOURO</span><b>Sua primeira partida<br>começa aqui.</b><a href="aprender.html">Conheça o jogo <span>↗</span></a><span class="sidebar-spark">✧</span></div><div class="sidebar-bottom"><a href="index.html">← Página de apresentação</a><span>Projeto acadêmico independente<br>One Piece TCG · Atlas</span></div></aside><button class="sidebar-scrim" aria-label="Fechar menu" hidden></button><header class="app-topbar"><button class="app-menu" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button><span class="topbar-path">ATLAS <span>/</span> ${page==='decks'?'ESTALEIRO DE DECKS':page==='buy'?'PORTO COMERCIAL':page==='learn'?'ACADEMIA PIRATA':page==='favorites'?'SUA COLEÇÃO':page==='card'?'DETALHES DA CARTA':'EXPLORAR O NOVO MUNDO'}</span><div class="topbar-actions"><a href="aprender.html" class="topbar-help" aria-label="Ajuda e tutorial">?</a><a class="topbar-login" href="login.html">Entrar <span>↗</span></a></div></header>`;
+    const items = [['home','home.html','▦','Explorar cartas'],['mydecks','/app/decks','⚑','Meus decks'],['decks','decks.html','✎','Montar decks'],['buy','comprar.html','◉','Onde conseguir'],['favorites','favoritos.html','♡','Meus favoritos'],['learn','aprender.html','◈','Aprenda a jogar']];
+    $('#app-shell').innerHTML = `<a class="skip" href="#main">Pular para o conteúdo</a><aside class="app-sidebar" id="sidebar"><a class="brand" href="index.html"><span class="brand-symbol">✦</span><span>GRAND LINE<span class="brand-sub">A T L A S</span></span></a><span class="sidebar-kicker">SEU DIÁRIO DE BORDO</span><nav class="side-nav" aria-label="Menu principal">${items.map(([id,url,icon,label])=>`<a href="${url}" ${page===id?'class="selected" aria-current="page"':''}><span>${icon}</span>${label}${id==='favorites'?'<small id="nav-favorite-count"></small>':''}</a>`).join('')}</nav><div class="sidebar-course"><span>CONHECIMENTO É TESOURO</span><b>Sua primeira partida<br>começa aqui.</b><a href="aprender.html">Conheça o jogo <span>↗</span></a><span class="sidebar-spark">✧</span></div><div class="sidebar-bottom"><a href="index.html">← Página de apresentação</a><span>Projeto acadêmico independente<br>One Piece TCG · Atlas</span></div></aside><button class="sidebar-scrim" aria-label="Fechar menu" hidden></button><header class="app-topbar"><button class="app-menu" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button><span class="topbar-path">ATLAS <span>/</span> ${page==='decks'?'ESTALEIRO DE DECKS':page==='buy'?'PORTO COMERCIAL':page==='learn'?'ACADEMIA PIRATA':page==='favorites'?'SUA COLEÇÃO':page==='card'?'DETALHES DA CARTA':'EXPLORAR O NOVO MUNDO'}</span><div class="topbar-actions"><a href="aprender.html" class="topbar-help" aria-label="Ajuda e tutorial">?</a><a class="topbar-login" href="/app/login">Entrar <span>↗</span></a></div></header>`;
     const updateCount = () => { $('#nav-favorite-count').textContent = favoriteIds().length; };
     updateCount(); document.addEventListener('atlas:favorites',updateCount);
     const closeMenu = () => { $('#sidebar').classList.remove('is-open'); $('.sidebar-scrim').hidden=true; $('.app-menu').setAttribute('aria-expanded','false'); };
     $('.app-menu').onclick=()=>{ const open=$('#sidebar').classList.toggle('is-open'); $('.sidebar-scrim').hidden=!open; $('.app-menu').setAttribute('aria-expanded',String(open)); };
     $('.sidebar-scrim').onclick=closeMenu;
     document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+  }
+  // Confere a sessão do servidor em toda navegação estática.
+  // "Entrar" só permanece visível quando não existe autenticação confirmada.
+  const accountLink = document.querySelector('.topbar-login, .login-link');
+  if (accountLink) {
+    accountLink.href = '/app/login';
+    fetch('/app/session', { credentials: 'same-origin', cache: 'no-store' })
+      .then(response => response.ok ? response.json() : null)
+      .then(session => {
+        if (session && session.authenticated) {
+          accountLink.href = '/app/decks';
+          accountLink.textContent = 'Minha conta ↗';
+          if (session.display_name) accountLink.title = 'Conectado como ' + session.display_name;
+        }
+      })
+      .catch(() => {}); // Sem servidor PHP: mantém o link de login real.
   }
   if ($('#app-footer')) $('#app-footer').innerHTML = `<span>GRAND LINE ATLAS · Projeto acadêmico de fã para fã.</span><span>One Piece © Eiichiro Oda / Shueisha / Toei Animation · Card Game © Bandai.<br>Sem afiliação oficial. <a href="https://en.onepiece-cardgame.com/cardlist/" target="_blank" rel="noopener">Catálogo Bandai ↗</a> · <a href="https://oplaytcg.com/en/library" target="_blank" rel="noopener">Complementos OPlayTCG ↗</a></span>`;
   document.addEventListener('click', e => { const button=e.target.closest('[data-favorite]'); if(button) favorite(button.dataset.favorite); });
