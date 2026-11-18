@@ -1,18 +1,18 @@
-# Grand Line Atlas · Frontend e banco MySQL v0.5
+# Grand Line Atlas · Interface, backend PHP e banco MySQL
 
 Guia acadêmico de One Piece Card Game, em português, com HTML, CSS, JavaScript e Bootstrap 5.3.3. A apresentação original foi mantida e conectada às páginas internas.
 
 ## Banco MySQL disponível
 
-A pasta [database](database/README.md) contém estrutura MySQL 8.4, instalação SQL completa e carga de **3.123 IDs / 5.343 impressões**, imagens referenciadas, textos originais e explicações em português. São **51 tabelas e nove views**, com relações de filtros, usuários, decks, coleção, aprendizagem, narrativa e futuras integrações. Há MER, dicionário completo, consultas de exemplo e adaptador inicial PDO. **75 verificações passaram no MySQL 8.4.10**, incluindo preservação integral dos 5.343 registros JSON e testes de FKs/CHECKs com rollback. O frontend ainda usa dados estáticos; o backend PHP deve ser conectado em uma etapa posterior.
+A pasta [database](database/README.md) contém estrutura MySQL 8.4, instalação SQL completa e carga de **3.123 IDs / 5.343 impressões**, imagens referenciadas, textos originais e explicações em português. São **51 tabelas e nove views**, com relações de filtros, usuários, decks, coleção, aprendizagem, narrativa e futuras integrações. Há MER, dicionário completo, consultas de exemplo e adaptador inicial PDO. **75 verificações passaram no MySQL 8.4.10**, incluindo preservação integral dos 5.343 registros JSON e testes de FKs/CHECKs com rollback. O catálogo estático continua usando uma fotografia de dados em JavaScript; o CRUD autenticado de decks já usa PHP, PDO e MySQL. A API JSON de leitura reutiliza as consultas do banco.
 
 ## Páginas
 
 | Arquivo em `dist/` | Conteúdo |
 | --- | --- |
 | `index.html` | Apresentação com capas e cartas em destaque |
-| `login.html` | Login, exibição de senha e acesso como visitante |
-| `cadastro.html` | Cadastro com confirmação e indicador de força da senha |
+| `login.html` | Redireciona para o login real `/app/login` ao usar o roteador PHP |
+| `cadastro.html` | Redireciona para o cadastro real `/app/cadastro` ao usar o roteador PHP |
 | `recuperar.html` | Interface de recuperação de acesso |
 | `home.html` | Home com catálogo, filtros, ordenação e paginação |
 | `favoritos.html` | Cartas favoritas salvas no navegador |
@@ -33,13 +33,13 @@ node server.mjs
 
 Abra **http://127.0.0.1:4173** e mantenha o terminal aberto. Ctrl+C encerra o servidor. Para mudar a porta, defina a variável de ambiente `PORT`. O servidor só fornece arquivos estáticos; não implementa autenticação.
 
-Com PHP instalado:
+Para **usar login, CRUD e APIs**, configure `DB_USER`, `DB_PASSWORD` (e, se necessário, `DB_HOST`, `DB_PORT`, `DB_NAME`) e inicie o servidor com o roteador:
 
 ```text
-php -S localhost:8000 -t dist
+php -S localhost:8000 -t dist backend/router.php
 ```
 
-Abra **http://localhost:8000**. Esse comando apenas serve o frontend; o backend ainda será implementado.
+Abra **http://localhost:8000/app/login**. A instalação do MySQL e das extensões PHP está detalhada em [backend/README.md](backend/README.md). Nunca inclua senhas em arquivos versionados. O servidor embutido PHP é para uso local e desenvolvimento.
 
 Também é possível abrir `dist/index.html` diretamente ou usar o Live Server do VS Code. Prefira HTTP para armazenamento consistente de favoritos e progresso entre páginas. O comportamento de armazenamento em `file://` varia entre navegadores.
 
@@ -120,11 +120,11 @@ O progresso fica no navegador. O simulador é um exercício de comparação de p
 
 ## Autenticação e limites
 
-Login, cadastro e recuperação são **interfaces de frontend**. Nenhum usuário é criado ou autenticado, nenhuma senha é salva e nenhum e-mail é enviado. Após validar o formulário, a interface informa esse estado e oferece acesso à home demonstrativa. Não há sessão fictícia ou proteção de rotas no navegador.
+Login e cadastro **reais** estão em `/app/login` e `/app/cadastro`, implementados em PHP com MySQL, sessões, hash de senhas e CSRF. Os caminhos estáticos `/login.html` e `/cadastro.html` são redirecionados para as rotas reais quando se usa `backend/router.php`. O botão de conta nas páginas estáticas consulta `/app/session` para refletir a sessão PHP. **Recuperação por e-mail ainda não está implementada**: a interface de recuperação é demonstrativa. Nenhum e-mail é enviado.
 
 As relações entre ilustração, capítulo, episódio e contexto narrativo continuam como **pesquisa pendente**, visível nas fichas. Não foram inventadas referências. Algumas artes são originais. Um produto listado não garante que cada pacote contenha a carta.
 
-O banco MySQL e a carga inicial estão prontos em `database/`. O backend PHP em [`backend/`](backend/README.md) entrega autenticação por sessão, o CRUD de decks com filtros e a listagem em PDF (`php -S localhost:8000 -t dist backend/router.php`, depois `/app`). Recuperação de senha por e-mail, coleção/favoritos no servidor e CRUDs administrativos continuam como próxima etapa.
+O banco MySQL e a carga inicial estão em `database/`. O backend PHP em [`backend/`](backend/README.md) entrega autenticação por sessão, CRUD de decks com filtros e PDF, além das APIs de leitura `GET /app/api/cards` e `GET /app/api/decks`. Esta arquitetura é uma aplicação PHP em camadas com APIs JSON, **não microsserviços** nem uma API REST completa de escrita. Recuperação de senha por e-mail, coleção/favoritos no servidor e CRUDs administrativos não estão implementados.
 
 ## Organização
 
