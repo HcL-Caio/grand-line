@@ -140,6 +140,18 @@ check('ID que não é UUID dá 404', $ana->get('/app/decks/nao-e-uuid')['status'
 $r = $ana->get('/app');
 check('/app redireciona para a lista de decks', $r['status'] === 303 && str_ends_with((string)$r['location'], '/app/decks'));
 
+echo "== API de leitura e sessão pública\n";
+$r = $ana->get('/app/session');
+$session = json_decode($r['body'], true);
+check('API de sessão antes do login', $r['status'] === 200 && ($session['authenticated'] ?? null) === false);
+$r = $ana->get('/app/api/cards?q=Luffy');
+$cardsApi = json_decode($r['body'], true);
+check('API pública de cartas responde JSON paginado', $r['status'] === 200 && str_starts_with(header1($r, 'content-type'), 'application/json') && isset($cardsApi['data'], $cardsApi['pagination']['total']) && count($cardsApi['data']) > 0);
+$r = $ana->get('/app/api/decks');
+check('API privada de decks exige sessão HTTP 401', $r['status'] === 401 && str_contains($r['body'], 'Autenticação necessária'));
+check('login estático redireciona para PHP', $ana->get('/login.html')['location'] === '/app/login');
+check('cadastro estático redireciona para PHP', $ana->get('/cadastro.html')['location'] === '/app/cadastro');
+
 echo "== Acesso sem login\n";
 $r = $ana->get('/app/decks');
 check('lista exige login (redireciona com next)', $r['status'] === 303 && str_starts_with((string)$r['location'], '/app/login?next='));
@@ -176,6 +188,11 @@ check('ID de sessão é renovado ao autenticar', ($ana->cookies['atlas_sid'] ?? 
 $r = $ana->get('/app/decks');
 check('lista abre logada, com boas-vindas e estado vazio', $r['status'] === 200 && str_contains($r['body'], 'Conta criada') && str_contains($r['body'], 'ainda não montou nenhum deck'));
 check('nome do usuário aparece no topo', str_contains($r['body'], 'Ana Lima'));
+$r = $ana->get('/app/session');
+check('sessão informa login ativo em JSON', $r['status'] === 200 && (json_decode($r['body'], true)['authenticated'] ?? null) === true);
+$r = $ana->get('/app/api/decks');
+$decksApi = json_decode($r['body'], true);
+check('API de decks autenticada responde lista vazia', $r['status'] === 200 && is_array($decksApi['data'] ?? null) && count($decksApi['data']) === 0);
 $dup = (new Client($port));
 $r = $dup->post('/app/cadastro', ['name' => 'Outra', 'email' => strtoupper("ana{$tag}@example.com"), 'password' => 'senhaSegura1', 'password_confirm' => 'senhaSegura1'], '/app/cadastro');
 check('e-mail repetido é recusado', $r['status'] === 422 && str_contains($r['body'], 'já está cadastrado'));
@@ -293,6 +310,8 @@ echo "== Isolamento entre usuários\n";
 $bob = new Client($port);
 $bob->post('/app/cadastro', ['name' => 'Bob Souza', 'email' => "bob{$tag}@example.com", 'password' => 'outraSenha22', 'password_confirm' => 'outraSenha22'], '/app/cadastro');
 check('Bob logado vê lista vazia', str_contains($bob->get('/app/decks')['body'], 'ainda não montou nenhum deck'));
+$r = $bob->get('/app/api/decks');
+check('API respeita isolamento entre contas', $r['status'] === 200 && (json_decode($r['body'], true)['pagination']['total'] ?? -1) === 0);
 check('Bob não abre o deck da Ana (404)', $bob->get("/app/decks/{$deckId}")['status'] === 404);
 check('Bob não abre o editor da Ana (404)', $bob->get("/app/decks/{$deckId}/editar")['status'] === 404);
 check('Bob não baixa o PDF do deck da Ana (404)', $bob->get("/app/decks/{$deckId}.pdf")['status'] === 404);
@@ -313,6 +332,8 @@ $oldSession = $ana->cookies['atlas_sid'];
 $r = $ana->post('/app/logout', [], '/app/decks');
 check('logout: 303 para o login', $r['status'] === 303 && str_ends_with((string)$r['location'], '/app/login'));
 check('depois do logout a lista exige login de novo', $ana->get('/app/decks')['status'] === 303);
+$r = $ana->get('/app/session');
+check('API de sessão reconhece logout', $r['status'] === 200 && (json_decode($r['body'], true)['authenticated'] ?? null) === false);
 $replay = new Client($port);
 $replay->cookies['atlas_sid'] = $oldSession;
 check('ID de sessão antigo não volta a funcionar', $replay->get('/app/decks')['status'] === 303);
