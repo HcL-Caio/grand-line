@@ -15,6 +15,13 @@ use Atlas\Controller;
 require_once __DIR__ . '/src/bootstrap.php';
 
 $path = rawurldecode((string)parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH));
+
+// O login e o cadastro demonstrativos devem usar a autenticação real.
+if ($path === '/login.html' || $path === '/cadastro.html') {
+    header('Location: ' . App::BASE . ($path === '/login.html' ? '/login' : '/cadastro'), true, 302);
+    exit;
+}
+
 if ($path !== App::BASE && !str_starts_with($path, App::BASE . '/')) {
     return false; // arquivo estático de dist/
 }
@@ -51,6 +58,19 @@ try {
     $route = $route === '' ? '/' : $route;
 
     $pdo = App::pdo();
+
+    // Endpoint de leitura para o frontend estático: compartilha a sessão PHP real.
+    // Não expõe IDs, tokens ou credenciais.
+    if ($route === '/session' && $method === 'GET') {
+        $user = Auth::user($pdo);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'authenticated' => $user !== null,
+            'display_name' => $user['display_name'] ?? null,
+        ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        exit;
+    }
+
     $app = new Controller($pdo);
     $id = '([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})';
 
